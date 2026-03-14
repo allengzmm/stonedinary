@@ -22,7 +22,10 @@ function getPageMeta(pathname: string) {
   if (pathname === "/settings") {
     return { title: "设置", description: "管理导出、备份、账号和偏好。" };
   }
-  return { title: "今日道痕", description: "围绕今天最起波澜的一件事，写下七层记录。" };
+  return {
+    title: "今日道痕",
+    description: "围绕今天最起波澜的一件事，写下七层记录。",
+  };
 }
 
 export function AppLayout() {
@@ -35,7 +38,7 @@ export function AppLayout() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <h1>道痕</h1>
+          <h1>道痕日记本</h1>
           <p>StoneDiary · 离线结构化认知日记</p>
         </div>
         <nav className="nav-list">

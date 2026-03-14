@@ -337,5 +337,5 @@ pub fn run() {
             restore_database_backup
         ])
         .run(tauri::generate_context!())
-        .expect("error while running StoneDiary");
+        .expect("error while running 道痕日记本 StoneDiary");
 }
