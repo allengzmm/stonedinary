@@ -1,0 +1,26 @@
+[package]
+name = "stone-diary"
+version = "0.1.1"
+description = "Offline structured journal desktop app"
+authors = ["Codex"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "stone_diary_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.6", features = [] }
+
+[dependencies]
+aes-gcm = "0.10.3"
+argon2 = "0.5.3"
+base64 = "0.22.1"
+rand = "0.8.5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2.10.3", features = [] }
+tauri-plugin-sql = { version = "2.3.0", features = ["sqlite"] }
