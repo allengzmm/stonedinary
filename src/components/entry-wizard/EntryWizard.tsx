@@ -308,7 +308,7 @@ export function EntryWizard() {
             id={currentField}
             className="field-textarea"
             disabled={isLoading}
-            {...register(currentField, { required: "这一层不能为空" })}
+            {...register(currentField, { required: "这一层不能为空。" })}
           />
           <ValidationHint message={hintMessage} />
           {errors[currentField] ? (

@@ -169,6 +169,7 @@ export function StonesPage() {
           ))}
         </div>
       </section>
+
       <section className="panel stone-card">
         <h3>石头详情</h3>
         {!selectedStone ? (
@@ -176,15 +177,11 @@ export function StonesPage() {
         ) : (
           <form className="list" onSubmit={onSubmit}>
             <div>
-              <label className="field-label" htmlFor="stone-name">
-                石头名称
-              </label>
+              <label className="field-label" htmlFor="stone-name">石头名称</label>
               <input id="stone-name" className="field-input" {...register("name")} />
             </div>
             <div>
-              <label className="field-label" htmlFor="stone-description">
-                石头描述
-              </label>
+              <label className="field-label" htmlFor="stone-description">石头描述</label>
               <textarea
                 id="stone-description"
                 className="field-textarea compact"
@@ -202,9 +199,7 @@ export function StonesPage() {
               </div>
             </div>
             <div className="list">
-              <div className="list-item">
-                <strong>关联日记</strong>
-              </div>
+              <div className="list-item"><strong>关联日记</strong></div>
               {relatedEntries.length === 0 ? (
                 <div className="list-item">暂无关联日记。</div>
               ) : (

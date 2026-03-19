@@ -20,7 +20,7 @@ function getPageMeta(pathname: string) {
     return { title: "周期复盘", description: "按周和月回看高频模式与场景。" };
   }
   if (pathname === "/settings") {
-    return { title: "设置", description: "管理导出、备份、账号和偏好。" };
+    return { title: "设置", description: "管理导出、导入、账号和偏好。" };
   }
   return {
     title: "今日道痕",
@@ -54,6 +54,7 @@ export function AppLayout() {
           ))}
         </nav>
       </aside>
+
       <section className="main-shell">
         <header className="topbar">
           <div>
@@ -67,9 +68,23 @@ export function AppLayout() {
             </button>
           </div>
         </header>
+
         <main className="content">
           <Outlet />
         </main>
+
+        <nav className="mobile-nav">
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/"}
+              className={({ isActive }) => `mobile-nav-item${isActive ? " active" : ""}`}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
       </section>
     </div>
   );

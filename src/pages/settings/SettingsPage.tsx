@@ -73,9 +73,9 @@ export function SettingsPage() {
     try {
       const summary = await importJsonSnapshot(file);
       setMessage(
-        `导入完成。日记 新增 ${summary.entriesInserted} / 更新 ${summary.entriesUpdated} / 跳过 ${summary.entriesSkipped}；` +
-          `石头 新增 ${summary.stonesInserted} / 更新 ${summary.stonesUpdated} / 跳过 ${summary.stonesSkipped}；` +
-          `复盘 新增 ${summary.reviewsInserted} / 更新 ${summary.reviewsUpdated} / 跳过 ${summary.reviewsSkipped}。`,
+        `导入完成。日记：新增 ${summary.entriesInserted} / 更新 ${summary.entriesUpdated} / 跳过 ${summary.entriesSkipped}；` +
+          `石头：新增 ${summary.stonesInserted} / 更新 ${summary.stonesUpdated} / 跳过 ${summary.stonesSkipped}；` +
+          `复盘：新增 ${summary.reviewsInserted} / 更新 ${summary.reviewsUpdated} / 跳过 ${summary.reviewsSkipped}。`,
       );
       window.location.reload();
     } catch (error) {
@@ -192,7 +192,9 @@ export function SettingsPage() {
         <h3>数据导出 / 导入</h3>
         <div className="list">
           <div className="list-item">导出当前账号的日记、石头和复盘数据。</div>
-          <div className="list-item">Android 版与 Windows 版使用同一份 JSON 结构，可互相迁移并按时间合并。</div>
+          <div className="list-item">
+            Android 版与 Windows 版使用同一份 JSON 结构，可互相迁移并按时间合并。
+          </div>
         </div>
         <input
           ref={fileInputRef}
@@ -202,10 +204,20 @@ export function SettingsPage() {
           onChange={handleImportFileChange}
         />
         <div className="toolbar" style={{ marginTop: 16 }}>
-          <button className="btn" type="button" disabled={isExporting !== null} onClick={() => void handleExport("json")}>
+          <button
+            className="btn"
+            type="button"
+            disabled={isExporting !== null}
+            onClick={() => void handleExport("json")}
+          >
             {isExporting === "json" ? "导出中..." : "导出 JSON"}
           </button>
-          <button className="btn" type="button" disabled={isExporting !== null} onClick={() => void handleExport("markdown")}>
+          <button
+            className="btn"
+            type="button"
+            disabled={isExporting !== null}
+            onClick={() => void handleExport("markdown")}
+          >
             {isExporting === "markdown" ? "导出中..." : "导出 Markdown"}
           </button>
           <button
@@ -223,7 +235,9 @@ export function SettingsPage() {
         <section className="panel settings-card">
           <h3>数据库备份 / 恢复</h3>
           <p className="muted">每个账号单独备份自己的数据库。填写备份密码可生成加密备份。</p>
-          <label className="field-label" htmlFor="backup-password">备份密码</label>
+          <label className="field-label" htmlFor="backup-password">
+            备份密码
+          </label>
           <input
             id="backup-password"
             className="field-input"
@@ -233,12 +247,19 @@ export function SettingsPage() {
             placeholder="留空则生成普通备份"
           />
           <div className="toolbar" style={{ marginTop: 16 }}>
-            <button className="btn primary" type="button" disabled={isBackingUp || !currentAccount} onClick={() => void handleCreateBackup()}>
+            <button
+              className="btn primary"
+              type="button"
+              disabled={isBackingUp || !currentAccount}
+              onClick={() => void handleCreateBackup()}
+            >
               {isBackingUp ? "备份中..." : "创建备份"}
             </button>
           </div>
           <div className="list" style={{ marginTop: 18 }}>
-            <div className="list-item"><strong>当前账号备份列表</strong></div>
+            <div className="list-item">
+              <strong>当前账号备份列表</strong>
+            </div>
             {backups.length === 0 ? (
               <div className="list-item">暂无备份。</div>
             ) : (
@@ -251,7 +272,12 @@ export function SettingsPage() {
                   </div>
                   <p className="muted">{backup.path}</p>
                   <div className="toolbar">
-                    <button className="btn" type="button" disabled={restoringFile !== null} onClick={() => void handleRestore(backup)}>
+                    <button
+                      className="btn"
+                      type="button"
+                      disabled={restoringFile !== null}
+                      onClick={() => void handleRestore(backup)}
+                    >
                       {restoringFile === backup.filename ? "恢复中..." : "恢复此备份"}
                     </button>
                   </div>
@@ -264,15 +290,21 @@ export function SettingsPage() {
         <section className="panel settings-card">
           <h3>Android 数据迁移说明</h3>
           <div className="list">
-            <div className="list-item">Android 版不提供数据库文件级备份，统一通过 JSON 导出与导入迁移数据。</div>
-            <div className="list-item">从 Windows 版导出 JSON 后，可在 Android 版直接导入；Android 导出的 JSON 也可回导到 Windows 版并按时间合并。</div>
+            <div className="list-item">
+              Android 版不提供数据库文件级备份，统一通过 JSON 导出与导入迁移数据。
+            </div>
+            <div className="list-item">
+              从 Windows 版导出 JSON 后，可在 Android 版直接导入；Android 导出的 JSON 也可回导到 Windows 版并按时间合并。
+            </div>
           </div>
         </section>
       )}
 
       <section className="panel settings-card">
         <h3>管理员账号管理</h3>
-        <label className="field-label" htmlFor="admin-password">管理员密码</label>
+        <label className="field-label" htmlFor="admin-password">
+          管理员密码
+        </label>
         <input
           id="admin-password"
           className="field-input"
@@ -282,18 +314,54 @@ export function SettingsPage() {
         />
         <div className="two-col" style={{ marginTop: 16 }}>
           <div className="list">
-            <div className="list-item"><strong>创建新账号</strong></div>
-            <input className="field-input" placeholder="新账号名" value={newUsername} onChange={(event) => setNewUsername(event.target.value)} />
-            <input className="field-input" type="password" placeholder="新账号密码" value={newUserPassword} onChange={(event) => setNewUserPassword(event.target.value)} />
-            <button className="btn primary" type="button" disabled={isAdminWorking} onClick={() => void handleCreateAccount()}>
+            <div className="list-item">
+              <strong>创建新账号</strong>
+            </div>
+            <input
+              className="field-input"
+              placeholder="新账号名"
+              value={newUsername}
+              onChange={(event) => setNewUsername(event.target.value)}
+            />
+            <input
+              className="field-input"
+              type="password"
+              placeholder="新账号密码"
+              value={newUserPassword}
+              onChange={(event) => setNewUserPassword(event.target.value)}
+            />
+            <button
+              className="btn primary"
+              type="button"
+              disabled={isAdminWorking}
+              onClick={() => void handleCreateAccount()}
+            >
               {isAdminWorking ? "处理中..." : "创建账号"}
             </button>
           </div>
           <div className="list">
-            <div className="list-item"><strong>重置账号密码</strong></div>
-            <input className="field-input" placeholder="目标账号名" value={resetUsername} onChange={(event) => setResetUsername(event.target.value)} />
-            <input className="field-input" type="password" placeholder="新密码" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} />
-            <button className="btn" type="button" disabled={isAdminWorking} onClick={() => void handleResetAccountPassword()}>
+            <div className="list-item">
+              <strong>重置账号密码</strong>
+            </div>
+            <input
+              className="field-input"
+              placeholder="目标账号名"
+              value={resetUsername}
+              onChange={(event) => setResetUsername(event.target.value)}
+            />
+            <input
+              className="field-input"
+              type="password"
+              placeholder="新密码"
+              value={resetPassword}
+              onChange={(event) => setResetPassword(event.target.value)}
+            />
+            <button
+              className="btn"
+              type="button"
+              disabled={isAdminWorking}
+              onClick={() => void handleResetAccountPassword()}
+            >
               {isAdminWorking ? "处理中..." : "重置密码"}
             </button>
           </div>

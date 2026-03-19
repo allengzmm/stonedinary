@@ -179,7 +179,7 @@ export function HistoryPage() {
     <div className="history-grid">
       <section className="panel list-card">
         <h3>搜索与筛选</h3>
-        <div className="toolbar">
+        <div className="toolbar mobile-stack">
           <input
             className="field-input"
             placeholder="搜索事件、石头或理由"
@@ -211,6 +211,7 @@ export function HistoryPage() {
           </select>
         </div>
       </section>
+
       <div className="two-col">
         <section className="panel list-card">
           <h3>历史记录</h3>
@@ -247,6 +248,7 @@ export function HistoryPage() {
             ))}
           </div>
         </section>
+
         <section className="panel detail-card">
           <h3>记录详情</h3>
           {!selectedEntry ? (
@@ -257,6 +259,7 @@ export function HistoryPage() {
                 <span className="chip">日期 {selectedEntry.entryDate}</span>
                 <span className="chip">创建于 {selectedEntry.createdAt.slice(0, 10)}</span>
               </div>
+
               <div className="inline-grid">
                 <div>
                   <label className="field-label" htmlFor="history-sceneType">
@@ -291,65 +294,50 @@ export function HistoryPage() {
                   </select>
                 </div>
               </div>
+
               <div>
-                <label className="field-label" htmlFor="history-eventText">
-                  事件
-                </label>
+                <label className="field-label" htmlFor="history-eventText">事件</label>
                 <textarea id="history-eventText" className="field-textarea compact" {...register("eventText")} />
               </div>
               <div>
-                <label className="field-label" htmlFor="history-firstReaction">
-                  第一反应
-                </label>
+                <label className="field-label" htmlFor="history-firstReaction">第一反应</label>
                 <textarea id="history-firstReaction" className="field-textarea compact" {...register("firstReaction")} />
               </div>
               <div>
-                <label className="field-label" htmlFor="history-hiddenDesire">
-                  想得到什么
-                </label>
+                <label className="field-label" htmlFor="history-hiddenDesire">想得到什么</label>
                 <textarea id="history-hiddenDesire" className="field-textarea compact" {...register("hiddenDesire")} />
               </div>
               <div>
-                <label className="field-label" htmlFor="history-hiddenFear">
-                  害怕什么
-                </label>
+                <label className="field-label" htmlFor="history-hiddenFear">害怕什么</label>
                 <textarea id="history-hiddenFear" className="field-textarea compact" {...register("hiddenFear")} />
               </div>
               <div>
-                <label className="field-label" htmlFor="history-selfJustification">
-                  给自己的理由
-                </label>
+                <label className="field-label" htmlFor="history-selfJustification">给自己的理由</label>
                 <textarea id="history-selfJustification" className="field-textarea compact" {...register("selfJustification")} />
               </div>
               <div>
-                <label className="field-label" htmlFor="history-stoneTextSnapshot">
-                  石头
-                </label>
+                <label className="field-label" htmlFor="history-stoneTextSnapshot">石头</label>
                 <input id="history-stoneTextSnapshot" className="field-input" {...register("stoneTextSnapshot")} />
               </div>
               <div>
-                <label className="field-label" htmlFor="history-nextAction">
-                  下次怎么选
-                </label>
+                <label className="field-label" htmlFor="history-nextAction">下次怎么选</label>
                 <textarea id="history-nextAction" className="field-textarea compact" {...register("nextAction")} />
               </div>
+
               <div className="inline-grid">
                 <div>
-                  <label className="field-label" htmlFor="history-customTags">
-                    标签
-                  </label>
+                  <label className="field-label" htmlFor="history-customTags">标签</label>
                   <input id="history-customTags" className="field-input" {...register("customTags")} />
                 </div>
                 <div>
-                  <label className="field-label" htmlFor="history-status">
-                    状态
-                  </label>
+                  <label className="field-label" htmlFor="history-status">状态</label>
                   <select id="history-status" className="field-select" {...register("status")}>
                     <option value="completed">已完成</option>
                     <option value="draft">草稿</option>
                   </select>
                 </div>
               </div>
+
               {message ? (
                 <p
                   className="muted"
@@ -358,6 +346,7 @@ export function HistoryPage() {
                   {message}
                 </p>
               ) : null}
+
               <div className="toolbar" style={{ justifyContent: "space-between" }}>
                 <button
                   type="button"

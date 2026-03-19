@@ -13,8 +13,6 @@ export async function bootstrapApp() {
     console.error(error);
     const message = `本地认证初始化失败：${toErrorMessage(error)}`;
     await logDebug("bootstrap", message);
-    useAuthStore
-      .getState()
-      .failBoot(message);
+    useAuthStore.getState().failBoot(message);
   }
 }

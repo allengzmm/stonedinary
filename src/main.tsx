@@ -32,9 +32,7 @@ function AppRoot() {
           <h2 style={{ marginTop: 0 }}>启动失败</h2>
           <p className="muted">{bootError}</p>
           <p className="muted">
-            调试日志：
-            {" "}
-            {getDebugLogPath() ?? "应用数据目录中的 debug.log"}
+            调试日志： {getDebugLogPath() ?? "应用数据目录中的 debug.log"}
           </p>
         </div>
       </div>

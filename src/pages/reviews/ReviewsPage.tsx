@@ -107,10 +107,9 @@ function ReviewEditor({ reviewType, title, description }: ReviewEditorProps) {
     <section className="panel review-card">
       <h3>{title}</h3>
       <p className="muted">{description}</p>
-      <p className="muted">
-        统计区间：{start} 至 {end}
-      </p>
+      <p className="muted">统计区间：{start} 至 {end}</p>
       {isLoading ? <p className="muted">加载中...</p> : null}
+
       <div className="stats-row">
         <div className="metric">
           <strong>{aggregate.totalEntries}</strong>
@@ -127,22 +126,15 @@ function ReviewEditor({ reviewType, title, description }: ReviewEditorProps) {
           高频场景
         </div>
       </div>
+
       <div className="list" style={{ marginTop: 16 }}>
-        <div className="list-item">
-          <strong>Top Stones</strong>
-        </div>
+        <div className="list-item"><strong>Top Stones</strong></div>
         {renderList(aggregate.topStones, "暂无石头统计")}
-        <div className="list-item">
-          <strong>Top Scenes</strong>
-        </div>
+        <div className="list-item"><strong>Top Scenes</strong></div>
         {renderList(aggregate.topScenes, "暂无场景统计", true)}
-        <div className="list-item">
-          <strong>强度分布</strong>
-        </div>
+        <div className="list-item"><strong>强度分布</strong></div>
         {renderList(aggregate.intensityDistribution, "暂无强度统计")}
-        <div className="list-item">
-          <strong>典型记录</strong>
-        </div>
+        <div className="list-item"><strong>典型记录</strong></div>
         {aggregate.sampleEntries.length === 0 ? (
           <div className="list-item">暂无样本记录</div>
         ) : (
@@ -153,6 +145,7 @@ function ReviewEditor({ reviewType, title, description }: ReviewEditorProps) {
           ))
         )}
       </div>
+
       <form onSubmit={onSubmit}>
         <textarea
           className="field-textarea compact"
@@ -162,7 +155,7 @@ function ReviewEditor({ reviewType, title, description }: ReviewEditorProps) {
         />
         <textarea
           className="field-textarea compact"
-          placeholder="填写下一阶段想盯防的石头或一个具体动作"
+          placeholder="填写下一阶段想盯防的石头或一个具体行动"
           style={{ marginTop: 16 }}
           {...register("commitmentText")}
         />
