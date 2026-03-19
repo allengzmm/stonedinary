@@ -4,3 +4,8 @@ dist
 target
 src-tauri/target
 *.log
+.gradle
+android/.gradle
+android/build
+android/app/build
+android/local.properties

@@ -4,6 +4,7 @@ import { exportJson, exportMarkdown } from "@/services/exportService";
 import { importJsonSnapshot } from "@/services/importService";
 import { useAuthStore } from "@/stores/authStore";
 import { BackupRecord } from "@/types/entry";
+import { isTauriRuntime } from "@/platform/runtime";
 
 export function SettingsPage() {
   const currentAccount = useAuthStore((state) => state.currentAccount);
@@ -29,7 +30,7 @@ export function SettingsPage() {
   const [isAdminWorking, setIsAdminWorking] = useState(false);
 
   async function loadBackups() {
-    if (!currentAccount) {
+    if (!currentAccount || !isTauriRuntime()) {
       setBackups([]);
       return;
     }
@@ -99,7 +100,7 @@ export function SettingsPage() {
       );
     } catch (error) {
       console.error(error);
-      setMessage("备份失败，请稍后重试。");
+      setMessage(error instanceof Error ? error.message : "备份失败，请稍后重试。");
     } finally {
       setIsBackingUp(false);
     }
@@ -127,7 +128,7 @@ export function SettingsPage() {
       window.location.reload();
     } catch (error) {
       console.error(error);
-      setMessage("恢复失败，请检查备份密码或备份文件。");
+      setMessage(error instanceof Error ? error.message : "恢复失败，请检查备份密码或备份文件。");
     } finally {
       setRestoringFile(null);
     }
@@ -191,7 +192,7 @@ export function SettingsPage() {
         <h3>数据导出 / 导入</h3>
         <div className="list">
           <div className="list-item">导出当前账号的日记、石头和复盘数据。</div>
-          <div className="list-item">导入历史 JSON 快照时，会与现有数据按时间合并。</div>
+          <div className="list-item">Android 版与 Windows 版使用同一份 JSON 结构，可互相迁移并按时间合并。</div>
         </div>
         <input
           ref={fileInputRef}
@@ -218,46 +219,56 @@ export function SettingsPage() {
         </div>
       </section>
 
-      <section className="panel settings-card">
-        <h3>数据库备份 / 恢复</h3>
-        <p className="muted">每个账号单独备份自己的数据库。填写备份密码可生成加密备份。</p>
-        <label className="field-label" htmlFor="backup-password">备份密码</label>
-        <input
-          id="backup-password"
-          className="field-input"
-          type="password"
-          value={backupPassword}
-          onChange={(event) => setBackupPassword(event.target.value)}
-          placeholder="留空则生成普通备份"
-        />
-        <div className="toolbar" style={{ marginTop: 16 }}>
-          <button className="btn primary" type="button" disabled={isBackingUp || !currentAccount} onClick={() => void handleCreateBackup()}>
-            {isBackingUp ? "备份中..." : "创建备份"}
-          </button>
-        </div>
-        <div className="list" style={{ marginTop: 18 }}>
-          <div className="list-item"><strong>当前账号备份列表</strong></div>
-          {backups.length === 0 ? (
-            <div className="list-item">暂无备份。</div>
-          ) : (
-            backups.map((backup) => (
-              <div key={backup.filename} className="list-item">
-                <div className="list-row">
-                  <strong>{backup.filename}</strong>
-                  <span className="chip">{backup.encrypted ? "已加密" : "普通"}</span>
-                  <span className="chip">{backup.size} bytes</span>
+      {isTauriRuntime() ? (
+        <section className="panel settings-card">
+          <h3>数据库备份 / 恢复</h3>
+          <p className="muted">每个账号单独备份自己的数据库。填写备份密码可生成加密备份。</p>
+          <label className="field-label" htmlFor="backup-password">备份密码</label>
+          <input
+            id="backup-password"
+            className="field-input"
+            type="password"
+            value={backupPassword}
+            onChange={(event) => setBackupPassword(event.target.value)}
+            placeholder="留空则生成普通备份"
+          />
+          <div className="toolbar" style={{ marginTop: 16 }}>
+            <button className="btn primary" type="button" disabled={isBackingUp || !currentAccount} onClick={() => void handleCreateBackup()}>
+              {isBackingUp ? "备份中..." : "创建备份"}
+            </button>
+          </div>
+          <div className="list" style={{ marginTop: 18 }}>
+            <div className="list-item"><strong>当前账号备份列表</strong></div>
+            {backups.length === 0 ? (
+              <div className="list-item">暂无备份。</div>
+            ) : (
+              backups.map((backup) => (
+                <div key={backup.filename} className="list-item">
+                  <div className="list-row">
+                    <strong>{backup.filename}</strong>
+                    <span className="chip">{backup.encrypted ? "已加密" : "普通"}</span>
+                    <span className="chip">{backup.size} bytes</span>
+                  </div>
+                  <p className="muted">{backup.path}</p>
+                  <div className="toolbar">
+                    <button className="btn" type="button" disabled={restoringFile !== null} onClick={() => void handleRestore(backup)}>
+                      {restoringFile === backup.filename ? "恢复中..." : "恢复此备份"}
+                    </button>
+                  </div>
                 </div>
-                <p className="muted">{backup.path}</p>
-                <div className="toolbar">
-                  <button className="btn" type="button" disabled={restoringFile !== null} onClick={() => void handleRestore(backup)}>
-                    {restoringFile === backup.filename ? "恢复中..." : "恢复此备份"}
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
+              ))
+            )}
+          </div>
+        </section>
+      ) : (
+        <section className="panel settings-card">
+          <h3>Android 数据迁移说明</h3>
+          <div className="list">
+            <div className="list-item">Android 版不提供数据库文件级备份，统一通过 JSON 导出与导入迁移数据。</div>
+            <div className="list-item">从 Windows 版导出 JSON 后，可在 Android 版直接导入；Android 导出的 JSON 也可回导到 Windows 版并按时间合并。</div>
+          </div>
+        </section>
+      )}
 
       <section className="panel settings-card">
         <h3>管理员账号管理</h3>

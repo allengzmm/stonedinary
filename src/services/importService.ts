@@ -40,7 +40,12 @@ function assertPayload(payload: ImportPayload) {
   if (!payload || typeof payload !== "object") {
     throw new Error("导入文件格式无效。");
   }
-  if (!Array.isArray(payload.entries) && !Array.isArray(payload.stones) && !Array.isArray(payload.reviews)) {
+
+  if (
+    !Array.isArray(payload.entries) &&
+    !Array.isArray(payload.stones) &&
+    !Array.isArray(payload.reviews)
+  ) {
     throw new Error("导入文件缺少可识别的数据段。");
   }
 }

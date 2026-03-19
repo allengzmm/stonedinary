@@ -1,9 +1,11 @@
+import { readMobileDb, updateMobileDb } from "@/db/mobileStore";
 import { getDatabase } from "@/db/client";
 import {
   ReviewAggregateItem,
   ReviewAggregateRecord,
   ReviewRecord,
 } from "@/types/entry";
+import { isTauriRuntime } from "@/platform/runtime";
 
 interface ReviewStatsRow {
   id: string;
@@ -32,7 +34,7 @@ function sortCountMap(map: Map<string, number>, limit = 5): ReviewAggregateItem[
     .map(([label, count]) => ({ label, count }));
 }
 
-export class ReviewsRepository {
+class TauriReviewsRepository {
   async listAll(): Promise<ReviewRecord[]> {
     const db = await getDatabase();
     return db.select<ReviewRecord[]>(
@@ -221,6 +223,148 @@ export class ReviewsRepository {
       updatedAt: now,
     };
   }
+}
+
+class MobileReviewsRepository {
+  async listAll(): Promise<ReviewRecord[]> {
+    return [...readMobileDb().reviews].sort((a, b) => b.periodEnd.localeCompare(a.periodEnd));
+  }
+
+  async findByPeriod(
+    reviewType: "weekly" | "monthly",
+    periodStart: string,
+    periodEnd: string,
+  ): Promise<ReviewRecord | null> {
+    return (
+      readMobileDb().reviews.find(
+        (review) =>
+          review.reviewType === reviewType &&
+          review.periodStart === periodStart &&
+          review.periodEnd === periodEnd,
+      ) ?? null
+    );
+  }
+
+  async getAggregate(
+    periodStart: string,
+    periodEnd: string,
+  ): Promise<ReviewAggregateRecord> {
+    const rows = readMobileDb()
+      .entries.filter(
+        (entry) =>
+          entry.status === "completed" &&
+          entry.entryDate >= periodStart &&
+          entry.entryDate <= periodEnd,
+      )
+      .sort((a, b) => b.entryDate.localeCompare(a.entryDate))
+      .map((entry) => ({
+        id: entry.id,
+        entryDate: entry.entryDate,
+        sceneType: entry.sceneType,
+        intensity: entry.intensity,
+        eventText: entry.eventText,
+        stoneTextSnapshot: entry.stoneTextSnapshot,
+        selfJustification: entry.selfJustification,
+      }));
+
+    const stoneCounts = toCountMap(rows.map((row) => row.stoneTextSnapshot));
+    const sceneCounts = toCountMap(rows.map((row) => row.sceneType));
+    const intensityCounts = toCountMap(rows.map((row) => String(row.intensity)));
+
+    return {
+      totalEntries: rows.length,
+      topStones: sortCountMap(stoneCounts),
+      topScenes: sortCountMap(sceneCounts),
+      intensityDistribution: sortCountMap(intensityCounts, 5),
+      sampleEntries: rows.slice(0, 5),
+    };
+  }
+
+  async saveReview(input: {
+    reviewType: "weekly" | "monthly";
+    periodStart: string;
+    periodEnd: string;
+    totalEntries: number;
+    topStones: ReviewAggregateItem[];
+    topScenes: ReviewAggregateItem[];
+    summaryText: string;
+    commitmentText: string;
+  }): Promise<ReviewRecord> {
+    const now = new Date().toISOString();
+    const existing = await this.findByPeriod(
+      input.reviewType,
+      input.periodStart,
+      input.periodEnd,
+    );
+
+    const record: ReviewRecord = existing
+      ? {
+          ...existing,
+          totalEntries: input.totalEntries,
+          topStonesJson: JSON.stringify(input.topStones),
+          topScenesJson: JSON.stringify(input.topScenes),
+          summaryText: input.summaryText.trim(),
+          commitmentText: input.commitmentText.trim(),
+          updatedAt: now,
+        }
+      : {
+          id: crypto.randomUUID(),
+          reviewType: input.reviewType,
+          periodStart: input.periodStart,
+          periodEnd: input.periodEnd,
+          totalEntries: input.totalEntries,
+          topStonesJson: JSON.stringify(input.topStones),
+          topScenesJson: JSON.stringify(input.topScenes),
+          summaryText: input.summaryText.trim(),
+          commitmentText: input.commitmentText.trim(),
+          createdAt: now,
+          updatedAt: now,
+        };
+
+    updateMobileDb((current) => ({
+      ...current,
+      reviews: existing
+        ? current.reviews.map((review) => (review.id === record.id ? record : review))
+        : [...current.reviews, record],
+    }));
+
+    return record;
+  }
+}
+
+class ReviewsRepository {
+  private get backend() {
+    return isTauriRuntime() ? tauriBackend : mobileBackend;
+  }
+
+  async listAll() {
+    return this.backend.listAll();
+  }
+
+  async findByPeriod(
+    reviewType: "weekly" | "monthly",
+    periodStart: string,
+    periodEnd: string,
+  ) {
+    return this.backend.findByPeriod(reviewType, periodStart, periodEnd);
+  }
+
+  async getAggregate(periodStart: string, periodEnd: string) {
+    return this.backend.getAggregate(periodStart, periodEnd);
+  }
+
+  async saveReview(input: {
+    reviewType: "weekly" | "monthly";
+    periodStart: string;
+    periodEnd: string;
+    totalEntries: number;
+    topStones: ReviewAggregateItem[];
+    topScenes: ReviewAggregateItem[];
+    summaryText: string;
+    commitmentText: string;
+  }) {
+    return this.backend.saveReview(input);
+  }
 
   async importMerge(review: ReviewRecord): Promise<"inserted" | "updated" | "skipped"> {
     const existing = await this.findByPeriod(
@@ -247,5 +391,8 @@ export class ReviewsRepository {
     return existing ? "updated" : "inserted";
   }
 }
+
+const tauriBackend = new TauriReviewsRepository();
+const mobileBackend = new MobileReviewsRepository();
 
 export const reviewsRepository = new ReviewsRepository();

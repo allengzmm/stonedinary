@@ -23,6 +23,7 @@
 - `React`
 - `TypeScript`
 - `SQLite`
+- `Capacitor Android`
 
 ## 最新安装包
 
@@ -48,6 +49,28 @@ npm run tauri dev
 ```bash
 npm run tauri build
 ```
+
+## Android 版本
+
+项目现已加入 Android 工程骨架，目录在 [android](./android)。
+
+常用命令：
+
+```bash
+npm run build
+npm run android:sync
+npm run android:open
+```
+
+说明：
+
+- Windows 桌面版继续使用 `Tauri + SQLite`
+- Android 版使用 `Capacitor + 本地离线存储`
+- 两端共用同一份 JSON 导出结构
+- 可通过 JSON 导出 / 导入在 Windows 与 Android 之间双向迁移
+- 导入时按既有规则自动合并，而不是整库覆盖
+
+详细说明见：[ANDROID.md](./ANDROID.md)
 
 ## 仓库说明
 

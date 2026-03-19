@@ -1,8 +1,10 @@
+import { readMobileDb, updateMobileDb } from "@/db/mobileStore";
 import { getDatabase } from "@/db/client";
 import { StoneRecord, StoneUpdateInput } from "@/types/entry";
 import { mapStoneRow } from "@/utils/entryMapper";
+import { isTauriRuntime } from "@/platform/runtime";
 
-export class StonesRepository {
+class TauriStonesRepository {
   async listAll(): Promise<StoneRecord[]> {
     const db = await getDatabase();
     const rows = await db.select<StoneRecord[]>(
@@ -160,29 +162,146 @@ export class StonesRepository {
       [new Date().toISOString(), id],
     );
   }
+}
+
+class MobileStonesRepository {
+  private withUsage(stone: StoneRecord): StoneRecord {
+    const entries = readMobileDb().entries.filter((entry) => entry.stoneId === stone.id);
+    const lastUsedAt = entries.length
+      ? [...entries].sort((a, b) => b.entryDate.localeCompare(a.entryDate))[0].entryDate
+      : null;
+
+    return {
+      ...stone,
+      usageCount: entries.length,
+      lastUsedAt,
+    };
+  }
+
+  async listAll(): Promise<StoneRecord[]> {
+    return readMobileDb()
+      .stones.map((stone) => this.withUsage(stone))
+      .sort((a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0) || b.updatedAt.localeCompare(a.updatedAt));
+  }
+
+  async listActive(): Promise<StoneRecord[]> {
+    return (await this.listAll()).filter((stone) => !stone.isArchived);
+  }
+
+  async findByName(name: string): Promise<StoneRecord | null> {
+    const stone = readMobileDb().stones.find((item) => item.name === name) ?? null;
+    return stone ? this.withUsage(stone) : null;
+  }
+
+  async findById(id: string): Promise<StoneRecord | null> {
+    const stone = readMobileDb().stones.find((item) => item.id === id) ?? null;
+    return stone ? this.withUsage(stone) : null;
+  }
+
+  async findOrCreateByName(name: string): Promise<StoneRecord> {
+    const existing = await this.findByName(name);
+    if (existing) {
+      return existing;
+    }
+
+    const now = new Date().toISOString();
+    const stone: StoneRecord = {
+      id: crypto.randomUUID(),
+      name,
+      description: "",
+      isArchived: false,
+      createdAt: now,
+      updatedAt: now,
+      usageCount: 0,
+      lastUsedAt: null,
+    };
+
+    updateMobileDb((current) => ({
+      ...current,
+      stones: [...current.stones, stone],
+    }));
+
+    return stone;
+  }
+
+  async update(input: StoneUpdateInput): Promise<void> {
+    updateMobileDb((current) => ({
+      ...current,
+      stones: current.stones.map((stone) =>
+        stone.id === input.id
+          ? {
+              ...stone,
+              name: input.name.trim(),
+              description: input.description.trim(),
+              updatedAt: new Date().toISOString(),
+            }
+          : stone,
+      ),
+    }));
+  }
+
+  async archive(id: string): Promise<void> {
+    updateMobileDb((current) => ({
+      ...current,
+      stones: current.stones.map((stone) =>
+        stone.id === id
+          ? {
+              ...stone,
+              isArchived: true,
+              updatedAt: new Date().toISOString(),
+            }
+          : stone,
+      ),
+    }));
+  }
+}
+
+class StonesRepository {
+  private get backend() {
+    return isTauriRuntime() ? tauriBackend : mobileBackend;
+  }
+
+  async listAll() {
+    return this.backend.listAll();
+  }
+
+  async listActive() {
+    return this.backend.listActive();
+  }
+
+  async findByName(name: string) {
+    return this.backend.findByName(name);
+  }
+
+  async findById(id: string) {
+    return this.backend.findById(id);
+  }
+
+  async findOrCreateByName(name: string) {
+    return this.backend.findOrCreateByName(name);
+  }
+
+  async update(input: StoneUpdateInput) {
+    return this.backend.update(input);
+  }
+
+  async archive(id: string) {
+    return this.backend.archive(id);
+  }
 
   async importMerge(stone: StoneRecord): Promise<"inserted" | "updated" | "skipped"> {
     const existing = await this.findByName(stone.name.trim());
     if (!existing) {
       const created = await this.findOrCreateByName(stone.name.trim());
       if (stone.description.trim() || stone.isArchived) {
-        const db = await getDatabase();
-        await db.execute(
-          `
-            UPDATE stones
-            SET
-              description = ?,
-              is_archived = ?,
-              updated_at = ?
-            WHERE id = ?
-          `,
-          [
-            stone.description.trim(),
-            stone.isArchived ? 1 : 0,
-            stone.updatedAt,
-            created.id,
-          ],
-        );
+        await this.update({
+          id: created.id,
+          name: stone.name.trim(),
+          description: stone.description.trim(),
+        });
+        if (stone.isArchived) {
+          await this.archive(created.id);
+        }
       }
       return "inserted";
     }
@@ -191,20 +310,19 @@ export class StonesRepository {
       return "skipped";
     }
 
-    const db = await getDatabase();
-    await db.execute(
-      `
-        UPDATE stones
-        SET
-          description = ?,
-          is_archived = ?,
-          updated_at = ?
-        WHERE id = ?
-      `,
-      [stone.description.trim(), stone.isArchived ? 1 : 0, stone.updatedAt, existing.id],
-    );
+    await this.update({
+      id: existing.id,
+      name: stone.name.trim(),
+      description: stone.description.trim(),
+    });
+    if (stone.isArchived && !existing.isArchived) {
+      await this.archive(existing.id);
+    }
     return "updated";
   }
 }
+
+const tauriBackend = new TauriStonesRepository();
+const mobileBackend = new MobileStonesRepository();
 
 export const stonesRepository = new StonesRepository();

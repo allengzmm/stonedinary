@@ -1,4 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
+import { isTauriRuntime } from "@/platform/runtime";
 
 let dbPromise: Promise<Database> | null = null;
 let activeDatabaseUri: string | null = null;
@@ -17,6 +18,10 @@ export function getActiveDatabaseUri() {
 }
 
 export function getDatabase() {
+  if (!isTauriRuntime()) {
+    throw new Error("SQL database access is only available in the Tauri desktop runtime.");
+  }
+
   if (!activeDatabaseUri) {
     throw new Error("No active account database selected.");
   }
@@ -29,6 +34,11 @@ export function getDatabase() {
 }
 
 export async function closeDatabase() {
+  if (!isTauriRuntime()) {
+    dbPromise = null;
+    return;
+  }
+
   if (!dbPromise) {
     return;
   }

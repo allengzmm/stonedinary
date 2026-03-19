@@ -1,5 +1,7 @@
 import { getDatabase } from "@/db/client";
+import { readMobileDb, updateMobileDb } from "@/db/mobileStore";
 import { AppSettingsRecord } from "@/types/entry";
+import { isTauriRuntime } from "@/platform/runtime";
 
 interface AppSettingsRow {
   id: number;
@@ -19,7 +21,7 @@ function mapSettings(row: AppSettingsRow): AppSettingsRecord {
   };
 }
 
-export class AppSettingsRepository {
+class TauriAppSettingsRepository {
   async get(): Promise<AppSettingsRecord> {
     const db = await getDatabase();
     const rows = await db.select<AppSettingsRow[]>(
@@ -41,5 +43,35 @@ export class AppSettingsRepository {
     return mapSettings(rows[0]);
   }
 }
+
+class MobileAppSettingsRepository {
+  async get(): Promise<AppSettingsRecord> {
+    return readMobileDb().appSettings;
+  }
+
+  async save(next: Partial<AppSettingsRecord>) {
+    updateMobileDb((current) => ({
+      ...current,
+      appSettings: {
+        ...current.appSettings,
+        ...next,
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+  }
+}
+
+class AppSettingsRepository {
+  private get backend() {
+    return isTauriRuntime() ? tauriBackend : mobileBackend;
+  }
+
+  async get() {
+    return this.backend.get();
+  }
+}
+
+const tauriBackend = new TauriAppSettingsRepository();
+const mobileBackend = new MobileAppSettingsRepository();
 
 export const appSettingsRepository = new AppSettingsRepository();

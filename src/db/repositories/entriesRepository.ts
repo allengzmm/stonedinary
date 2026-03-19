@@ -1,9 +1,11 @@
+import { readMobileDb, updateMobileDb } from "@/db/mobileStore";
 import { getDatabase } from "@/db/client";
 import { EntryRecord, EntryUpsertInput } from "@/types/entry";
 import { mapEntryRow } from "@/utils/entryMapper";
 import { stonesRepository } from "@/db/repositories/stonesRepository";
+import { isTauriRuntime } from "@/platform/runtime";
 
-export class EntriesRepository {
+class TauriEntriesRepository {
   async listAll(): Promise<EntryRecord[]> {
     const db = await getDatabase();
     const rows = await db.select<EntryRecord[]>(
@@ -241,6 +243,100 @@ export class EntriesRepository {
     const db = await getDatabase();
     await db.execute(`DELETE FROM entries WHERE id = ?`, [id]);
   }
+}
+
+class MobileEntriesRepository {
+  async listAll(): Promise<EntryRecord[]> {
+    return [...readMobileDb().entries].sort((a, b) => b.entryDate.localeCompare(a.entryDate));
+  }
+
+  async listRecent(limit = 50): Promise<EntryRecord[]> {
+    return (await this.listAll()).slice(0, limit);
+  }
+
+  async findByDate(entryDate: string): Promise<EntryRecord | null> {
+    return readMobileDb().entries.find((entry) => entry.entryDate === entryDate) ?? null;
+  }
+
+  async listByStoneId(stoneId: string): Promise<EntryRecord[]> {
+    return readMobileDb()
+      .entries.filter((entry) => entry.stoneId === stoneId)
+      .sort((a, b) => b.entryDate.localeCompare(a.entryDate));
+  }
+
+  async save(input: EntryUpsertInput): Promise<EntryRecord> {
+    const existing = await this.findByDate(input.entryDate);
+    const trimmedStone = input.stoneTextSnapshot.trim();
+    const stone = trimmedStone
+      ? await stonesRepository.findOrCreateByName(trimmedStone)
+      : null;
+    const now = new Date().toISOString();
+
+    const record: EntryRecord = existing
+      ? {
+          ...existing,
+          ...input,
+          stoneId: stone?.id ?? null,
+          stoneTextSnapshot: trimmedStone,
+          customTags: input.customTags,
+          updatedAt: now,
+        }
+      : {
+          id: crypto.randomUUID(),
+          ...input,
+          stoneId: stone?.id ?? null,
+          stoneTextSnapshot: trimmedStone,
+          customTags: input.customTags,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+    updateMobileDb((current) => ({
+      ...current,
+      entries: existing
+        ? current.entries.map((entry) => (entry.entryDate === record.entryDate ? record : entry))
+        : [...current.entries, record],
+    }));
+
+    return record;
+  }
+
+  async deleteById(id: string): Promise<void> {
+    updateMobileDb((current) => ({
+      ...current,
+      entries: current.entries.filter((entry) => entry.id !== id),
+    }));
+  }
+}
+
+class EntriesRepository {
+  private get backend() {
+    return isTauriRuntime() ? tauriBackend : mobileBackend;
+  }
+
+  async listAll() {
+    return this.backend.listAll();
+  }
+
+  async listRecent(limit = 50) {
+    return this.backend.listRecent(limit);
+  }
+
+  async findByDate(entryDate: string) {
+    return this.backend.findByDate(entryDate);
+  }
+
+  async listByStoneId(stoneId: string) {
+    return this.backend.listByStoneId(stoneId);
+  }
+
+  async save(input: EntryUpsertInput) {
+    return this.backend.save(input);
+  }
+
+  async deleteById(id: string) {
+    return this.backend.deleteById(id);
+  }
 
   async importMerge(entry: EntryRecord): Promise<"inserted" | "updated" | "skipped"> {
     const existing = await this.findByDate(entry.entryDate);
@@ -266,5 +362,8 @@ export class EntriesRepository {
     return existing ? "updated" : "inserted";
   }
 }
+
+const tauriBackend = new TauriEntriesRepository();
+const mobileBackend = new MobileEntriesRepository();
 
 export const entriesRepository = new EntriesRepository();
