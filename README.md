@@ -13,9 +13,9 @@
 - 多账号本地使用：每个账号对应独立数据库
 - 本地密码保护：支持账号密码登录与管理员密码重置
 - 数据导出：支持 JSON、Markdown 导出
-- 历史数据迁移导入：支持导入历史 JSON 数据，并与当前数据按时间合并
+- 历史数据迁移导入：支持导入历史 JSON 数据，并按时间合并
 - 数据库备份 / 恢复：支持普通备份与加密备份
-- 完全离线：主要数据保存在本地，不依赖云端服务
+- Android 版本：支持与 Windows 版本通过 JSON 双向迁移和合并
 
 ## 技术栈
 
@@ -25,20 +25,11 @@
 - `SQLite`
 - `Capacitor Android`
 
-## 最新安装包
-
-当前最新安装包已随仓库提供，位置在：
-
-- [release-assets/2026-03-14-v0.1.1-history-import-merge](./release-assets/2026-03-14-v0.1.1-history-import-merge)
-- [stone-diary.exe](./release-assets/2026-03-14-v0.1.1-history-import-merge/stone-diary.exe)
-- [StoneDiary_0.1.1_x64_en-US.msi](./release-assets/2026-03-14-v0.1.1-history-import-merge/StoneDiary_0.1.1_x64_en-US.msi)
-- [StoneDiary_0.1.1_x64-setup.exe](./release-assets/2026-03-14-v0.1.1-history-import-merge/StoneDiary_0.1.1_x64-setup.exe)
-
 ## 本地开发
 
-1. 安装 `Node.js`、`npm`、`Rust` 与 Tauri 所需环境
+1. 安装 `Node.js`、`npm`、`Rust` 以及 Tauri 所需环境
 2. 在项目目录执行 `npm install`
-3. 运行开发环境：
+3. 启动桌面开发环境：
 
 ```bash
 npm run tauri dev
@@ -50,9 +41,7 @@ npm run tauri dev
 npm run tauri build
 ```
 
-## Android 版本
-
-项目现已加入 Android 工程骨架，目录在 [android](./android)。
+## Android 开发
 
 常用命令：
 
@@ -64,25 +53,15 @@ npm run android:open
 
 说明：
 
-- Windows 桌面版继续使用 `Tauri + SQLite`
+- Windows 版继续使用 `Tauri + SQLite`
 - Android 版使用 `Capacitor + 本地离线存储`
 - 两端共用同一份 JSON 导出结构
 - 可通过 JSON 导出 / 导入在 Windows 与 Android 之间双向迁移
-- 导入时按既有规则自动合并，而不是整库覆盖
+- 导入时按现有规则自动合并，而不是整库覆盖
 
 详细说明见：[ANDROID.md](./ANDROID.md)
 
-## 仓库说明
-
-当前仓库主要包含：
-
-- 桌面端源码
-- SQLite 本地数据结构
-- 多账号本地登录与独立数据库实现
-- 历史数据迁移导入与备份恢复能力
-- Windows 安装包产物
-
-## 许可证与使用说明
+## 许可与使用说明
 
 本项目仓库使用 [PolyForm Noncommercial 1.0.0](./LICENSE) 许可证。
 
@@ -94,9 +73,3 @@ npm run android:open
 - 未经明确授权，不得进行商业发行或二次商业开发
 
 如需商业使用或授权合作，请另行获得明确授权。
-
-## 路线图
-
-- 优化 GitHub 首页展示
-- 持续完善安装包发布流程
-- 继续增强本地数据管理与迁移能力

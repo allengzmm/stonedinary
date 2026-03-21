@@ -9,3 +9,8 @@ android/.gradle
 android/build
 android/app/build
 android/local.properties
+android/.idea
+tmp-migration
+tmp-screen.png
+tmp-ui*.xml
+ui*.xml

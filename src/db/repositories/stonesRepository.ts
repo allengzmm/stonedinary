@@ -166,7 +166,16 @@ class TauriStonesRepository {
 
 class MobileStonesRepository {
   private withUsage(stone: StoneRecord): StoneRecord {
-    const entries = readMobileDb().entries.filter((entry) => entry.stoneId === stone.id);
+    const normalizedStoneName = stone.name.trim().toLowerCase();
+    const entries = readMobileDb().entries.filter((entry) => {
+      if (entry.stoneId === stone.id) {
+        return true;
+      }
+
+      // Fallback for legacy or partially merged records where the stone name
+      // is consistent but the stored stoneId is stale or missing.
+      return entry.stoneTextSnapshot.trim().toLowerCase() === normalizedStoneName;
+    });
     const lastUsedAt = entries.length
       ? [...entries].sort((a, b) => b.entryDate.localeCompare(a.entryDate))[0].entryDate
       : null;

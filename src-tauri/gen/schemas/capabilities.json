@@ -1,1 +1,1 @@
-{"main-capability":{"identifier":"main-capability","description":"Permissions for the main StoneDiary window.","local":true,"windows":["main"],"permissions":["core:default","sql:default","sql:allow-execute"]}}
+{"main-capability":{"identifier":"main-capability","description":"Permissions for the main 道痕日记本 StoneDiary window.","local":true,"windows":["main"],"permissions":["core:default","sql:default","sql:allow-execute"]}}
