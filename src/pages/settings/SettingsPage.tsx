@@ -5,6 +5,7 @@ import { importJsonSnapshot } from "@/services/importService";
 import { useAuthStore } from "@/stores/authStore";
 import { BackupRecord } from "@/types/entry";
 import { isTauriRuntime } from "@/platform/runtime";
+import { notifyEntriesChanged } from "@/utils/entryEvents";
 
 export function SettingsPage() {
   const currentAccount = useAuthStore((state) => state.currentAccount);
@@ -77,7 +78,7 @@ export function SettingsPage() {
           `石头：新增 ${summary.stonesInserted} / 更新 ${summary.stonesUpdated} / 跳过 ${summary.stonesSkipped}；` +
           `复盘：新增 ${summary.reviewsInserted} / 更新 ${summary.reviewsUpdated} / 跳过 ${summary.reviewsSkipped}。`,
       );
-      window.location.reload();
+      notifyEntriesChanged();
     } catch (error) {
       console.error(error);
       setMessage(error instanceof Error ? error.message : "导入失败，请检查文件格式。");

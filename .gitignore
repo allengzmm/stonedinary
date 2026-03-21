@@ -12,5 +12,6 @@ android/local.properties
 android/.idea
 tmp-migration
 tmp-screen.png
+tmp-screen*.png
 tmp-ui*.xml
 ui*.xml

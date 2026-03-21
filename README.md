@@ -4,6 +4,22 @@
 
 项目强调本地优先、离线可用和个人隐私保护，适合个人成长记录、情绪追踪、行为模式复盘等场景。
 
+## 当前版本
+
+- Windows：`v0.1.3`
+- Android：`v0.1.3`
+
+## 下载
+
+### Windows 版本
+
+- [道痕日记本 StoneDiary_0.1.3_x64-setup.exe](https://github.com/allengzmm/stonedinary/raw/main/release-assets/2026-03-21-v0.1.3-session-restore/%E9%81%93%E7%97%95%E6%97%A5%E8%AE%B0%E6%9C%AC%20StoneDiary_0.1.3_x64-setup.exe)
+- [stone-diary.exe](https://github.com/allengzmm/stonedinary/raw/main/release-assets/2026-03-21-v0.1.3-session-restore/stone-diary.exe)
+
+### Android 版本
+
+- [道痕日记本-StoneDiary-v0.1.3-debug.apk](https://github.com/allengzmm/stonedinary/raw/main/release-assets/2026-03-21-v0.1.3-session-restore/%E9%81%93%E7%97%95%E6%97%A5%E8%AE%B0%E6%9C%AC-StoneDiary-v0.1.3-debug.apk)
+
 ## 功能概览
 
 - 结构化日记记录：按固定步骤记录当天的重要事件与内在反应
@@ -16,6 +32,22 @@
 - 历史数据迁移导入：支持导入历史 JSON 数据，并按时间合并
 - 数据库备份 / 恢复：支持普通备份与加密备份
 - Android 版本：支持与 Windows 版本通过 JSON 双向迁移和合并
+
+## 更新记录
+
+### v0.1.3
+
+- 修复 Android 设置页导入后直接打回登录页的问题，导入成功后改为站内刷新
+- 增加当前账号登录态恢复，应用重启后可直接回到上次账号
+- 修复 Android 容器引用旧前端 bundle 的问题，重新同步后运行最新前端资产
+- 补充 Windows 与 Android 最新安装包产物
+
+### v0.1.2
+
+- 修复认证页中文文案显示
+- 修复移动端 Markdown 导出中的石头使用次数统计
+- 完成 Android / Windows JSON 迁移与合并回归验证
+- 增补 Android 测试方案与测试报告
 
 ## 技术栈
 

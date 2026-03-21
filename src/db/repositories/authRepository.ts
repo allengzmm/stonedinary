@@ -2,16 +2,19 @@ import { AccountRecord, AuthBootstrapState } from "@/types/auth";
 import { logDebug } from "@/services/logger";
 
 const AUTH_STORAGE_KEY = "stone-diary.auth-meta.v1";
+const AUTH_SESSION_KEY = "stone-diary.auth-session.v1";
 
 interface AuthStorageShape {
   adminPasswordHash: string;
   accounts: AccountRecord[];
+  lastActiveUsername: string | null;
 }
 
 function getDefaultStorage(): AuthStorageShape {
   return {
     adminPasswordHash: "",
     accounts: [],
+    lastActiveUsername: null,
   };
 }
 
@@ -26,6 +29,8 @@ function readStorage(): AuthStorageShape {
     return {
       adminPasswordHash: parsed.adminPasswordHash ?? "",
       accounts: parsed.accounts ?? [],
+      lastActiveUsername:
+        typeof parsed.lastActiveUsername === "string" ? parsed.lastActiveUsername : null,
     };
   } catch (error) {
     console.error(error);
@@ -35,6 +40,20 @@ function readStorage(): AuthStorageShape {
 
 function writeStorage(next: AuthStorageShape) {
   window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(next));
+}
+
+function readLastActiveUsername() {
+  const raw = window.localStorage.getItem(AUTH_SESSION_KEY);
+  return typeof raw === "string" && raw.length > 0 ? raw : null;
+}
+
+function writeLastActiveUsername(username: string | null) {
+  if (!username) {
+    window.localStorage.removeItem(AUTH_SESSION_KEY);
+    return;
+  }
+
+  window.localStorage.setItem(AUTH_SESSION_KEY, username);
 }
 
 export class AuthRepository {
@@ -57,6 +76,7 @@ export class AuthRepository {
     return {
       adminPasswordHash: state.adminPasswordHash,
       accounts: [...state.accounts].sort((a, b) => a.username.localeCompare(b.username)),
+      lastActiveUsername: readLastActiveUsername() ?? state.lastActiveUsername,
     };
   }
 
@@ -114,8 +134,18 @@ export class AuthRepository {
     });
   }
 
+  async setLastActiveUsername(username: string | null) {
+    const state = readStorage();
+    writeStorage({
+      ...state,
+      lastActiveUsername: username,
+    });
+    writeLastActiveUsername(username);
+  }
+
   async resetAll() {
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    window.localStorage.removeItem(AUTH_SESSION_KEY);
     await logDebug("authRepository", "local auth storage cleared");
   }
 }

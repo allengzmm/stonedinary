@@ -61,17 +61,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const state = await authRepository.getBootstrapState();
       const adminConfigured = Boolean(state.adminPasswordHash);
       const accounts = state.accounts;
+      const lastActiveAccount = state.lastActiveUsername
+        ? accounts.find((account) => account.username === state.lastActiveUsername) ?? null
+        : null;
+
+      if (lastActiveAccount) {
+        const databaseUri = await resolveAccountDbUri(lastActiveAccount.dbKey);
+        await logDebug("authStore", `restore session db uri: ${databaseUri}`);
+        setActiveDatabaseUri(databaseUri);
+        await runUserMigrations();
+      }
+
       set({
         initialized: true,
-        mode: adminConfigured && accounts.length > 0 ? "login" : "setup",
+        mode: lastActiveAccount ? "ready" : adminConfigured && accounts.length > 0 ? "login" : "setup",
         bootError: null,
         accounts,
-        currentAccount: null,
+        currentAccount: lastActiveAccount,
         adminConfigured,
       });
       await logDebug(
         "authStore",
-        `initialize complete; mode=${adminConfigured && accounts.length > 0 ? "login" : "setup"}`,
+        `initialize complete; mode=${lastActiveAccount ? "ready" : adminConfigured && accounts.length > 0 ? "login" : "setup"}`,
       );
     } catch (error) {
       console.error(error);
@@ -103,6 +114,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await logDebug("authStore", `resolved account db uri: ${databaseUri}`);
       setActiveDatabaseUri(databaseUri);
       await runUserMigrations();
+      await authRepository.setLastActiveUsername(account.username);
       const accounts = await authRepository.listAccounts();
       set({
         initialized: true,
@@ -145,6 +157,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await logDebug("authStore", `resolved login db uri: ${databaseUri}`);
       setActiveDatabaseUri(databaseUri);
       await runUserMigrations();
+      await authRepository.setLastActiveUsername(account.username);
       set({
         initialized: true,
         mode: "ready",
@@ -164,6 +177,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     await logDebug("authStore", "logout");
     await closeDatabase();
+    await authRepository.setLastActiveUsername(null);
     set({
       mode: "login",
       currentAccount: null,

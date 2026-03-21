@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.stonediary.mobile",
-  appName: "道痕日记本",
+  appName: "道痕日记本 StoneDiary",
   webDir: "dist",
   bundledWebRuntime: false,
   server: {

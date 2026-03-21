@@ -10,4 +10,5 @@ export interface AccountRecord {
 export interface AuthBootstrapState {
   adminPasswordHash: string;
   accounts: AccountRecord[];
+  lastActiveUsername: string | null;
 }
